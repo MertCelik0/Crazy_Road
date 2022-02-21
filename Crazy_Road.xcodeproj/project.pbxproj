@@ -16,6 +16,8 @@
 		E145268627C40F89000C859D /* Crazy_RoadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E145268527C40F89000C859D /* Crazy_RoadTests.swift */; };
 		E145269027C40F89000C859D /* Crazy_RoadUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E145268F27C40F89000C859D /* Crazy_RoadUITests.swift */; };
 		E145269227C40F89000C859D /* Crazy_RoadUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E145269127C40F89000C859D /* Crazy_RoadUITestsLaunchTests.swift */; };
+		E14526A227C4187F000C859D /* LaneNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14526A127C4187F000C859D /* LaneNode.swift */; };
+		E14526A427C41ACA000C859D /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14526A327C41ACA000C859D /* Utility.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +50,8 @@
 		E145268B27C40F89000C859D /* Crazy_RoadUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Crazy_RoadUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E145268F27C40F89000C859D /* Crazy_RoadUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Crazy_RoadUITests.swift; sourceTree = "<group>"; };
 		E145269127C40F89000C859D /* Crazy_RoadUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Crazy_RoadUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		E14526A127C4187F000C859D /* LaneNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaneNode.swift; sourceTree = "<group>"; };
+		E14526A327C41ACA000C859D /* Utility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utility.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,9 +105,11 @@
 				E145266F27C40F87000C859D /* AppDelegate.swift */,
 				E145267127C40F87000C859D /* art.scnassets */,
 				E145267327C40F87000C859D /* GameViewController.swift */,
+				E14526A127C4187F000C859D /* LaneNode.swift */,
 				E145267527C40F87000C859D /* Main.storyboard */,
 				E145267827C40F88000C859D /* Assets.xcassets */,
 				E145267A27C40F88000C859D /* LaunchScreen.storyboard */,
+				E14526A327C41ACA000C859D /* Utility.swift */,
 			);
 			path = Crazy_Road;
 			sourceTree = "<group>";
@@ -257,6 +263,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E14526A427C41ACA000C859D /* Utility.swift in Sources */,
+				E14526A227C4187F000C859D /* LaneNode.swift in Sources */,
 				E145267427C40F87000C859D /* GameViewController.swift in Sources */,
 				E145267027C40F87000C859D /* AppDelegate.swift in Sources */,
 			);
@@ -439,10 +447,13 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = R673V2XUP3;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Crazy-Road-Info.plist";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -467,10 +478,13 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = R673V2XUP3;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Crazy-Road-Info.plist";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UIRequiresFullScreen = YES;
 				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
