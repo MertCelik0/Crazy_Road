@@ -17,9 +17,15 @@ class GameViewController: UIViewController {
     var cameraNode = SCNNode()
     var lightNode = SCNNode()
     var playerNode = SCNNode()
+    
     var mapNode = SCNNode()
     var lanes = [LaneNode]()
     var laneCount = 0
+    
+    var jumpFovardAction = SCNAction()
+    var jumpRightAction = SCNAction()
+    var jumpLeftAction = SCNAction()
+    var jumpDownAction = SCNAction()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,6 +35,8 @@ class GameViewController: UIViewController {
         setupFloor()
         setupCamera()
         setupLight()
+        setupGesture()
+        setupActions()
     }
     
 
@@ -42,16 +50,12 @@ class GameViewController: UIViewController {
     func setupScene() {
         scene = SCNScene()
         sceneView.scene = scene
+        sceneView.delegate = self
         
         scene.rootNode.addChildNode(mapNode)
         
         for _ in 0..<20 {
-            let type = randomBool(odds: 3) ? LaneType.grass : LaneType.road
-            let lane = LaneNode(type: type, width: 21)
-            lane.position = SCNVector3(x: 0, y: 0, z: 5 - Float(laneCount))
-            laneCount += 1
-            lanes.append(lane)
-            mapNode.addChildNode(lane)
+            createNewLanes()
         }
     }
     
@@ -86,7 +90,7 @@ class GameViewController: UIViewController {
     func setupCamera() {
         cameraNode.camera = SCNCamera()
         cameraNode.position = SCNVector3(x: 0, y: 10, z: 0)
-        cameraNode.eulerAngles = SCNVector3(x: -toRadians(angle: 72), y: toRadians(angle: 9), z: 0)
+        cameraNode.eulerAngles = SCNVector3(x: -toRadians(angle: 60), y: toRadians(angle: 20), z: 0)
         scene.rootNode.addChildNode(cameraNode)
     }
     
@@ -110,4 +114,130 @@ class GameViewController: UIViewController {
         scene.rootNode.addChildNode(lightNode)
     }
     
+    // Setup swipe or tap gestures
+    func setupGesture() {
+        let jumpTap = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        sceneView.addGestureRecognizer(jumpTap)
+        
+        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipe))
+        swipeRight.direction = .right
+        sceneView.addGestureRecognizer(swipeRight)
+        
+        let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipe))
+        swipeRight.direction = .left
+        sceneView.addGestureRecognizer(swipeLeft)
+        
+        let swipeDown = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipe))
+        swipeDown.direction = .down
+        sceneView.addGestureRecognizer(swipeDown)
+    }
+    
+    // Setup actions
+    func setupActions() {
+        // Jump animation
+        let upAnimationAction = SCNAction.moveBy(x: 0, y: 1.0, z: 0, duration: 0.1)
+        let downAnimationAction = SCNAction.moveBy(x: 0, y: -1.0, z: 0, duration: 0.1)
+        upAnimationAction.timingMode = .easeOut
+        downAnimationAction.timingMode = .easeIn
+        let jumpAction = SCNAction.sequence([upAnimationAction, downAnimationAction])
+        
+        let moveFowardAction = SCNAction.moveBy(x: 0, y: 0, z: -1.0, duration: 0.2)
+        let moveRightAction = SCNAction.moveBy(x: 1.0, y: 0, z: 0, duration: 0.2)
+        let moveLeftAction = SCNAction.moveBy(x: -1.0, y: 0, z: 0, duration: 0.2)
+        let moveDownAction = SCNAction.moveBy(x: 0, y: 0, z: 1.0, duration: 0.2)
+
+        let turnFowardAction = SCNAction.rotateTo(x: 0, y: toRadians(angle: 180), z: 0, duration: 0.2, usesShortestUnitArc: true)
+        let turnRightAction = SCNAction.rotateTo(x: 0, y: toRadians(angle: 90), z: 0, duration: 0.2, usesShortestUnitArc: true)
+        let turnLeftAction = SCNAction.rotateTo(x: 0, y: toRadians(angle: -90), z: 0, duration: 0.2, usesShortestUnitArc: true)
+        let turnDownAction = SCNAction.rotateTo(x: 0, y: toRadians(angle: 360), z: 0, duration: 0.2, usesShortestUnitArc: true)
+
+        jumpFovardAction = SCNAction.group([turnFowardAction, jumpAction, moveFowardAction])
+        jumpRightAction = SCNAction.group([turnRightAction, jumpAction, moveRightAction])
+        jumpLeftAction = SCNAction.group([turnLeftAction, jumpAction, moveLeftAction])
+        jumpDownAction = SCNAction.group([turnDownAction, jumpAction, moveDownAction])
+
+    }
+    
+    // Jump foward Character
+    func jumpFowardCharacter() {
+        let action = jumpFovardAction
+        playerNode.runAction(action)
+        
+        addLanes()
+    }
+    
+    // Update camera position
+    func updateCameraPosition() {
+        let diffX = (playerNode.position.x + 1 - cameraNode.position.x)
+        let diffZ = (playerNode.position.z + 2 - cameraNode.position.z)
+        cameraNode.position.x += diffX
+        cameraNode.position.z += diffZ
+        
+        lightNode.position = cameraNode.position
+    }
+    
+    // Game add lanes
+    func addLanes() {
+        for _ in 0...1 {
+            createNewLanes()
+        }
+        removeUnsedLanes()
+    }
+    
+    // Create new lanes
+    func createNewLanes() {
+        let type = randomBool(odds: 3) ? LaneType.grass : LaneType.road
+        let lane = LaneNode(type: type, width: 21)
+        lane.position = SCNVector3(x: 0, y: 0, z: 5 - Float(laneCount))
+        laneCount += 1
+        lanes.append(lane)
+        mapNode.addChildNode(lane)
+    }
+    
+    // Remove no used lanes
+    func removeUnsedLanes() {
+        for child in mapNode.childNodes {
+            if !sceneView.isNode(child, insideFrustumOf: cameraNode) && child.worldPosition.z > playerNode.worldPosition.z {
+                child.removeFromParentNode()
+                lanes.removeFirst()
+            }
+        }
+    }
+}
+
+extension GameViewController: SCNSceneRendererDelegate {
+    func renderer(_ renderer: SCNSceneRenderer, didApplyAnimationsAtTime time: TimeInterval) {
+        updateCameraPosition()
+    }
+}
+
+extension GameViewController {
+    
+    @objc func handleTap(_ sender:UITapGestureRecognizer) {
+       jumpFowardCharacter()
+    }
+    
+    @objc func handleSwipe(_ sender:UISwipeGestureRecognizer) {
+        switch sender.direction {
+            case UISwipeGestureRecognizer.Direction.left:
+            if playerNode.position.x > -10 {
+                let action = jumpLeftAction
+                playerNode.runAction(action)
+            }
+            break
+            case UISwipeGestureRecognizer.Direction.right:
+            if playerNode.position.x < 10 {
+                let action = jumpRightAction
+                playerNode.runAction(action)
+            }
+            break
+            case UISwipeGestureRecognizer.Direction.down:
+                let action = jumpDownAction
+                playerNode.runAction(action)
+            break
+            default:
+            break
+        }
+    }
+
 }
