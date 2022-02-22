@@ -13,7 +13,10 @@ class GameViewController: UIViewController {
     
     var sceneView: SCNView!
     var scene: SCNScene!
-    var cameraNode: SCNNode!
+    
+    var cameraNode = SCNNode()
+    var lightNode = SCNNode()
+    var playerNode = SCNNode()
     var mapNode = SCNNode()
     var lanes = [LaneNode]()
     var laneCount = 0
@@ -22,10 +25,13 @@ class GameViewController: UIViewController {
         super.viewDidLoad()
         setupView()
         setupScene()
+        setupPlayer()
         setupFloor()
         setupCamera()
+        setupLight()
     }
     
+
     // Setup View
     func setupView() {
         sceneView = (view as! SCNView)
@@ -49,6 +55,19 @@ class GameViewController: UIViewController {
         }
     }
     
+    // Setup Player
+    func setupPlayer() {
+        guard let playerScene = SCNScene(named: "art.scnassets/Chicken.scn") else {
+            return
+        }
+        if let player = playerScene.rootNode.childNode(withName: "player", recursively: true) {
+            playerNode = player
+            playerNode.position = SCNVector3(x: 0, y: 0.3, z: 0)
+            scene.rootNode.addChildNode(playerNode)
+        }
+            
+    }
+    
     // Setup Floor
     func setupFloor() {
         let floor = SCNFloor()
@@ -65,12 +84,30 @@ class GameViewController: UIViewController {
     
     // Setup Camera
     func setupCamera() {
-        cameraNode = SCNNode()
         cameraNode.camera = SCNCamera()
         cameraNode.position = SCNVector3(x: 0, y: 10, z: 0)
         cameraNode.eulerAngles = SCNVector3(x: -toRadians(angle: 72), y: toRadians(angle: 9), z: 0)
         scene.rootNode.addChildNode(cameraNode)
     }
     
-
+    // Setup Light
+    func setupLight() {
+        let ambientNode = SCNNode()
+        ambientNode.light = SCNLight()
+        ambientNode.light?.type = .ambient
+        
+        let directonelNode = SCNNode()
+        directonelNode.light = SCNLight()
+        directonelNode.light?.type = .directional
+        directonelNode.light?.castsShadow = true
+        directonelNode.light?.shadowColor = UIColor(red: 0.4, green: 0.4, blue: 0.4, alpha: 1)
+        directonelNode.position = SCNVector3(x: -5, y: 5, z: 0)
+        directonelNode.eulerAngles = SCNVector3(x: 0, y: -toRadians(angle: 90), z: -toRadians(angle: 45))
+        
+        lightNode.addChildNode(ambientNode)
+        lightNode.addChildNode(directonelNode)
+        lightNode.position = cameraNode.position
+        scene.rootNode.addChildNode(lightNode)
+    }
+    
 }
