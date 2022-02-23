@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E109D50327C6B403004D6728 /* CollisionNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = E109D50227C6B403004D6728 /* CollisionNode.swift */; };
+		E109D50527C6BE5A004D6728 /* 8-BIT WONDER.TTF in Resources */ = {isa = PBXBuildFile; fileRef = E109D50427C6BE49004D6728 /* 8-BIT WONDER.TTF */; };
+		E109D50A27C6BEE7004D6728 /* GameHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = E109D50927C6BEE7004D6728 /* GameHUD.swift */; };
 		E145267027C40F87000C859D /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E145266F27C40F87000C859D /* AppDelegate.swift */; };
 		E145267227C40F87000C859D /* art.scnassets in Resources */ = {isa = PBXBuildFile; fileRef = E145267127C40F87000C859D /* art.scnassets */; };
 		E145267427C40F87000C859D /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E145267327C40F87000C859D /* GameViewController.swift */; };
@@ -38,6 +41,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		E109D50227C6B403004D6728 /* CollisionNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollisionNode.swift; sourceTree = "<group>"; };
+		E109D50427C6BE49004D6728 /* 8-BIT WONDER.TTF */ = {isa = PBXFileReference; lastKnownFileType = file; name = "8-BIT WONDER.TTF"; path = "../../../../Downloads/Resources/SceneKit/8-BIT WONDER.TTF"; sourceTree = "<group>"; };
+		E109D50927C6BEE7004D6728 /* GameHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameHUD.swift; sourceTree = "<group>"; };
 		E145266C27C40F87000C859D /* Crazy_Road.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Crazy_Road.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E145266F27C40F87000C859D /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		E145267127C40F87000C859D /* art.scnassets */ = {isa = PBXFileReference; lastKnownFileType = wrapper.scnassets; path = art.scnassets; sourceTree = "<group>"; };
@@ -102,6 +108,7 @@
 		E145266E27C40F87000C859D /* Crazy_Road */ = {
 			isa = PBXGroup;
 			children = (
+				E109D50427C6BE49004D6728 /* 8-BIT WONDER.TTF */,
 				E145266F27C40F87000C859D /* AppDelegate.swift */,
 				E145267127C40F87000C859D /* art.scnassets */,
 				E145267327C40F87000C859D /* GameViewController.swift */,
@@ -110,6 +117,8 @@
 				E145267827C40F88000C859D /* Assets.xcassets */,
 				E145267A27C40F88000C859D /* LaunchScreen.storyboard */,
 				E14526A327C41ACA000C859D /* Utility.swift */,
+				E109D50227C6B403004D6728 /* CollisionNode.swift */,
+				E109D50927C6BEE7004D6728 /* GameHUD.swift */,
 			);
 			path = Crazy_Road;
 			sourceTree = "<group>";
@@ -235,6 +244,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E109D50527C6BE5A004D6728 /* 8-BIT WONDER.TTF in Resources */,
 				E145267227C40F87000C859D /* art.scnassets in Resources */,
 				E145267C27C40F88000C859D /* LaunchScreen.storyboard in Resources */,
 				E145267927C40F88000C859D /* Assets.xcassets in Resources */,
@@ -264,8 +274,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				E14526A427C41ACA000C859D /* Utility.swift in Sources */,
+				E109D50A27C6BEE7004D6728 /* GameHUD.swift in Sources */,
 				E14526A227C4187F000C859D /* LaneNode.swift in Sources */,
 				E145267427C40F87000C859D /* GameViewController.swift in Sources */,
+				E109D50327C6B403004D6728 /* CollisionNode.swift in Sources */,
 				E145267027C40F87000C859D /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -8,11 +8,19 @@
 import UIKit
 import QuartzCore
 import SceneKit
+import SpriteKit
+
+enum GameState {
+    case menu, playing, gameOver
+}
 
 class GameViewController: UIViewController {
     
     var sceneView: SCNView!
     var scene: SCNScene!
+    var gameHUD: GameHUD!
+    var gameState = GameState.menu
+    var score = 0
     
     var cameraNode = SCNNode()
     var lightNode = SCNNode()
@@ -26,40 +34,82 @@ class GameViewController: UIViewController {
     var jumpRightAction: SCNAction?
     var jumpLeftAction: SCNAction?
     var jumpDownAction: SCNAction?
+    var dieAction: SCNAction?
     
     var driveRightAction: SCNAction?
     var driveLeftAction: SCNAction?
     
+    var collisionNode = CollisionNode()
+    var frontBlocked = false
+    var rightBlocked = false
+    var leftBlocked = false
+    var downBlocked = false
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupView()
+        initialiseGame()
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        switch gameState {
+        case .menu:
+            setupGesture()
+            gameHUD = GameHUD(with: sceneView.bounds.size, menu: false)
+            sceneView.overlaySKScene = gameHUD
+            sceneView.overlaySKScene?.isUserInteractionEnabled = false
+            gameState = .playing
+        default:
+            break
+        }
+    }
+    
+    func resetGame() {
+        scene.rootNode.enumerateChildNodes { (node, _) in
+            node.removeFromParentNode()
+        }
+        scene = nil
+        gameState = .menu
+        score = 0
+        laneCount = 0
+        lanes = [LaneNode]()
+        initialiseGame()
+    }
+    
+    func initialiseGame() {
         setupScene()
         setupPlayer()
+        setupCollisionNode()
         setupFloor()
         setupCamera()
         setupLight()
-        setupGesture()
         setupActions()
         setupTraffic()
     }
-    
 
-    // Setup View
-    func setupView() {
-        sceneView = (view as! SCNView)
-        sceneView.backgroundColor = .black
-    }
-    
+
     // Setup Scene
     func setupScene() {
-        scene = SCNScene()
-        sceneView.scene = scene
+        sceneView = view as! SCNView
         sceneView.delegate = self
+        
+        scene = SCNScene()
+        scene.physicsWorld.contactDelegate = self
+        sceneView.present(scene, with: .fade(withDuration: 0.5), incomingPointOfView: nil, completionHandler: nil)
+        
+        DispatchQueue.main.async {
+            self.gameHUD = GameHUD(with: self.sceneView.bounds.size, menu: true)
+            self.sceneView.overlaySKScene = self.gameHUD
+            self.sceneView.overlaySKScene?.isUserInteractionEnabled = false
+        }
+        
         
         scene.rootNode.addChildNode(mapNode)
         
-        for _ in 0..<20 {
-            createNewLanes()
+        for _ in 0..<10 {
+            createNewLanes(initial: true)
+        }
+        for _ in 0..<10 {
+            createNewLanes(initial: false)
         }
     }
     
@@ -88,6 +138,13 @@ class GameViewController: UIViewController {
         
         let floorNode = SCNNode(geometry: floor)
         scene.rootNode.addChildNode(floorNode)
+    }
+    
+    // Setup Collision
+    func setupCollisionNode() {
+        collisionNode = CollisionNode()
+        collisionNode.position = playerNode.position
+        scene.rootNode.addChildNode(collisionNode)
     }
     
     // Setup Camera
@@ -163,6 +220,7 @@ class GameViewController: UIViewController {
         driveRightAction = SCNAction.repeatForever(SCNAction.moveBy(x: 2.0, y: 0, z: 0, duration: 1.0))
         driveLeftAction = SCNAction.repeatForever(SCNAction.moveBy(x: -2.0, y: 0, z: 0, duration: 1.0))
 
+        dieAction = SCNAction.moveBy(x: 0, y: 5, z: 0, duration: 1.0)
     }
     
     // Setup traffic
@@ -177,13 +235,19 @@ class GameViewController: UIViewController {
     // Jump foward Character
     func jumpFowardCharacter() {
         let action = jumpFovardAction
-        playerNode.runAction(action!)
+        playerNode.runAction(action!, completionHandler: {
+            self.checkBlocks()
+            self.score += 1
+            self.gameHUD.pointsLabel?.text = "\(self.score)"
+        })
         
         addLanes()
     }
     
     // Update camera position
     func updateCameraPosition() {
+        collisionNode.position = playerNode.position
+        
         let diffX = (playerNode.position.x + 1 - cameraNode.position.x)
         let diffZ = (playerNode.position.z + 2 - cameraNode.position.z)
         cameraNode.position.x += diffX
@@ -211,14 +275,14 @@ class GameViewController: UIViewController {
     // Game add lanes
     func addLanes() {
         for _ in 0...1 {
-            createNewLanes()
+            createNewLanes(initial: false)
         }
         removeUnsedLanes()
     }
     
     // Create new lanes
-    func createNewLanes() {
-        let type = randomBool(odds: 3) ? LaneType.grass : LaneType.road
+    func createNewLanes(initial: Bool) {
+        let type = randomBool(odds: 3) || initial ? LaneType.grass : LaneType.road
         let lane = LaneNode(type: type, width: 21)
         lane.position = SCNVector3(x: 0, y: 0, z: 5 - Float(laneCount))
         laneCount += 1
@@ -245,7 +309,24 @@ class GameViewController: UIViewController {
         guard let driveAction = trafficNode.directionRight ? driveRightAction : driveLeftAction else {return}
         driveAction.speed = 1/CGFloat(trafficNode.type + 1) + 0.5
         for vehicle in trafficNode.childNodes {
+            vehicle.removeAllActions()
             vehicle.runAction(driveAction)
+        }
+    }
+    
+    func gameOver() {
+        DispatchQueue.main.async {
+            if let gestureRecognizers = self.sceneView.gestureRecognizers {
+                for recognizer in gestureRecognizers {
+                    self.sceneView.removeGestureRecognizer(recognizer)
+                }
+            }
+        }
+        gameState = .gameOver
+        if let action = dieAction {
+            playerNode.runAction(action, completionHandler:  {
+                self.resetGame()
+            })
         }
     }
 }
@@ -257,33 +338,86 @@ extension GameViewController: SCNSceneRendererDelegate {
     }
 }
 
+extension GameViewController: SCNPhysicsContactDelegate {
+    
+    func physicsWorld(_ world: SCNPhysicsWorld, didBegin contact: SCNPhysicsContact) {
+        
+        guard let categoryA = contact.nodeA.physicsBody?.categoryBitMask, let categoryB = contact.nodeB.physicsBody?.categoryBitMask else {
+            return
+        }
+        
+        let mask = categoryA | categoryB
+        
+        switch mask {
+            case PhysicsCategory.chicken | PhysicsCategory.vehicle:
+                gameOver()
+            case PhysicsCategory.vegetation | PhysicsCategory.collisionTestFront:
+                frontBlocked = true
+            case PhysicsCategory.vegetation | PhysicsCategory.collisionTestRight:
+                rightBlocked = true
+            case PhysicsCategory.vegetation | PhysicsCategory.collisionTestLeft:
+                leftBlocked = true
+            case PhysicsCategory.vegetation | PhysicsCategory.collisionTestDown:
+                downBlocked = true
+            default:
+                break
+        }
+        
+    }
+    
+}
+
 extension GameViewController {
     
     @objc func handleTap(_ sender:UITapGestureRecognizer) {
-       jumpFowardCharacter()
+        if !frontBlocked {
+            jumpFowardCharacter()
+        }
     }
     
     @objc func handleSwipe(_ sender:UISwipeGestureRecognizer) {
         switch sender.direction {
             case UISwipeGestureRecognizer.Direction.left:
-            if playerNode.position.x > -10 {
+            if playerNode.position.x > -10 && !leftBlocked {
                 let action = jumpLeftAction
-                playerNode.runAction(action!)
+                playerNode.runAction(action!, completionHandler: {
+                    self.checkBlocks()
+                })
             }
             break
             case UISwipeGestureRecognizer.Direction.right:
-            if playerNode.position.x < 10 {
+            if playerNode.position.x < 10 && !rightBlocked{
                 let action = jumpRightAction
-                playerNode.runAction(action!)
+                playerNode.runAction(action!, completionHandler: {
+                    self.checkBlocks()
+                })
             }
             break
             case UISwipeGestureRecognizer.Direction.down:
+            if !downBlocked {
                 let action = jumpDownAction
-            playerNode.runAction(action!)
+                playerNode.runAction(action!, completionHandler: {
+                self.checkBlocks()
+                })
+            }
             break
             default:
             break
         }
     }
 
+    func checkBlocks() {
+        if scene.physicsWorld.contactTest(with: collisionNode.front.physicsBody!, options: nil).isEmpty {
+            frontBlocked = false
+        }
+        if scene.physicsWorld.contactTest(with: collisionNode.left.physicsBody!, options: nil).isEmpty {
+            leftBlocked = false
+        }
+        if scene.physicsWorld.contactTest(with: collisionNode.right.physicsBody!, options: nil).isEmpty {
+            rightBlocked = false
+        }
+        if scene.physicsWorld.contactTest(with: collisionNode.down.physicsBody!, options: nil).isEmpty {
+            downBlocked = false
+        }
+    }
 }
