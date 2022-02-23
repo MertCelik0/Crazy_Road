@@ -22,10 +22,13 @@ class GameViewController: UIViewController {
     var lanes = [LaneNode]()
     var laneCount = 0
     
-    var jumpFovardAction = SCNAction()
-    var jumpRightAction = SCNAction()
-    var jumpLeftAction = SCNAction()
-    var jumpDownAction = SCNAction()
+    var jumpFovardAction: SCNAction?
+    var jumpRightAction: SCNAction?
+    var jumpLeftAction: SCNAction?
+    var jumpDownAction: SCNAction?
+    
+    var driveRightAction: SCNAction?
+    var driveLeftAction: SCNAction?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,6 +40,7 @@ class GameViewController: UIViewController {
         setupLight()
         setupGesture()
         setupActions()
+        setupTraffic()
     }
     
 
@@ -156,12 +160,24 @@ class GameViewController: UIViewController {
         jumpLeftAction = SCNAction.group([turnLeftAction, jumpAction, moveLeftAction])
         jumpDownAction = SCNAction.group([turnDownAction, jumpAction, moveDownAction])
 
+        driveRightAction = SCNAction.repeatForever(SCNAction.moveBy(x: 2.0, y: 0, z: 0, duration: 1.0))
+        driveLeftAction = SCNAction.repeatForever(SCNAction.moveBy(x: -2.0, y: 0, z: 0, duration: 1.0))
+
+    }
+    
+    // Setup traffic
+    func setupTraffic() {
+        for lane in lanes {
+            if let trafficNode = lane.trafficNode {
+                addActions(for: trafficNode)
+            }
+        }
     }
     
     // Jump foward Character
     func jumpFowardCharacter() {
         let action = jumpFovardAction
-        playerNode.runAction(action)
+        playerNode.runAction(action!)
         
         addLanes()
     }
@@ -174,6 +190,22 @@ class GameViewController: UIViewController {
         cameraNode.position.z += diffZ
         
         lightNode.position = cameraNode.position
+    }
+    
+    // Update Traffic
+    func updateTraffic() {
+        for lane in lanes {
+            guard let trafficNode = lane.trafficNode else {
+                continue
+            }
+            for vehicle in trafficNode.childNodes {
+                if vehicle.position.x > 10 {
+                    vehicle.position.x = -10
+                } else if vehicle.position.x < -10 {
+                    vehicle.position.x = 10
+                }
+            }
+        }
     }
     
     // Game add lanes
@@ -192,6 +224,10 @@ class GameViewController: UIViewController {
         laneCount += 1
         lanes.append(lane)
         mapNode.addChildNode(lane)
+        
+        if let trafficNode = lane.trafficNode {
+            addActions(for: trafficNode)
+        }
     }
     
     // Remove no used lanes
@@ -203,11 +239,21 @@ class GameViewController: UIViewController {
             }
         }
     }
+    
+    // Traffic action
+    func addActions(for trafficNode: TrafficNode) {
+        guard let driveAction = trafficNode.directionRight ? driveRightAction : driveLeftAction else {return}
+        driveAction.speed = 1/CGFloat(trafficNode.type + 1) + 0.5
+        for vehicle in trafficNode.childNodes {
+            vehicle.runAction(driveAction)
+        }
+    }
 }
 
 extension GameViewController: SCNSceneRendererDelegate {
     func renderer(_ renderer: SCNSceneRenderer, didApplyAnimationsAtTime time: TimeInterval) {
         updateCameraPosition()
+        updateTraffic()
     }
 }
 
@@ -222,18 +268,18 @@ extension GameViewController {
             case UISwipeGestureRecognizer.Direction.left:
             if playerNode.position.x > -10 {
                 let action = jumpLeftAction
-                playerNode.runAction(action)
+                playerNode.runAction(action!)
             }
             break
             case UISwipeGestureRecognizer.Direction.right:
             if playerNode.position.x < 10 {
                 let action = jumpRightAction
-                playerNode.runAction(action)
+                playerNode.runAction(action!)
             }
             break
             case UISwipeGestureRecognizer.Direction.down:
                 let action = jumpDownAction
-                playerNode.runAction(action)
+            playerNode.runAction(action!)
             break
             default:
             break
